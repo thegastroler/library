@@ -1,28 +1,22 @@
 import graphene
+from django_filters import FilterSet, OrderingFilter
 from graphene_django.filter import DjangoFilterConnectionField
 from graphene_django.types import DjangoObjectType
 
 from .models import Author, Book, Genre, Publisher
 
 
-class BookType(DjangoObjectType):
+class ExtendedConnection(graphene.Connection):
     class Meta:
-        model = Book
+        abstract = True
 
+    total_count = graphene.Int()
+    edge_count = graphene.Int()
 
-class AuthorType(DjangoObjectType):
-    class Meta:
-        model = Author
-
-
-class GenreType(DjangoObjectType):
-    class Meta:
-        model = Genre
-
-
-class PublisherType(DjangoObjectType):
-    class Meta:
-        model = Publisher
+    def resolve_total_count(root, info, **kwargs):
+        return root.length
+    def resolve_edge_count(root, info, **kwargs):
+        return len(root.edges)
 
 
 class AuthorInput(graphene.InputObjectType):
@@ -59,161 +53,59 @@ class BookInput(graphene.InputObjectType):
     publisher = graphene.Argument(BookPublisherInput)
 
 
-
-
-
-
-
-
-
-class ExtendedConnection(graphene.Connection):
+class BookType(DjangoObjectType):
     class Meta:
-        abstract = True
+        model = Book
+        filter_fields = {
+            'id':  ['exact', 'icontains'],
+            'title': ['exact', 'icontains', 'istartswith', 'iendswith'],
+            'author': ['exact',],
+            'publisher': ['exact',],
+        }
+        interfaces = (graphene.Node, )
+        connection_class = ExtendedConnection
 
-    total_count = graphene.Int()
-    edge_count = graphene.Int()
 
-    def resolve_total_count(root, info, **kwargs):
-        return root.length
-    def resolve_edge_count(root, info, **kwargs):
-        return len(root.edges)
+class GenreType(DjangoObjectType):
+    class Meta:
+        model = Genre
+        filter_fields = {
+            'id':  ['exact', 'icontains'],
+            'title': ['exact', 'icontains', 'istartswith', 'iendswith'],
+        }
+        interfaces = (graphene.Node, )
+        connection_class = ExtendedConnection
 
 
-class AuthorsType(DjangoObjectType):
+class PublisherType(DjangoObjectType):
+    class Meta:
+        model = Publisher
+        filter_fields = {
+            'id':  ['exact', 'icontains'],
+            'title': ['exact', 'icontains', 'istartswith', 'iendswith'],
+        }
+        interfaces = (graphene.Node, )
+        connection_class = ExtendedConnection
+
+
+class AuthorType(DjangoObjectType):
     class Meta:
         model = Author
         filter_fields = {
             'id':  ['exact', 'icontains'],
-            'first_name': ['exact', 'contains'],
-            'last_name': ['exact', 'contains'],
+            'first_name': ['exact', 'icontains', 'istartswith', 'iendswith'],
+            'last_name': ['exact', 'icontains', 'istartswith', 'iendswith'],
             'birth_date': ['exact'],
         }
         interfaces = (graphene.Node, )
         connection_class = ExtendedConnection
 
 
-
-
-
-
-
-
-
 class Query(graphene.ObjectType):
-    authors = DjangoFilterConnectionField(AuthorsType)
-    search_author = graphene.List(
-        AuthorType,
-        id=graphene.ID(),
-        first_name=graphene.String(),
-        last_name=graphene.String())
-    all_authors = graphene.List(AuthorType)
-    search_book = graphene.List(
-        BookType,
-        id=graphene.ID(),
-        title=graphene.String(),
-        author=graphene.Argument(BookAuthorInput),
-        genre=graphene.Argument(BookGenreInput),
-        publisher=graphene.Argument(BookPublisherInput)
-        )
-    all_books = graphene.List(BookType)
-    search_genre = graphene.List(
-        GenreType,
-        id=graphene.ID(),
-        title=graphene.String())
-    all_genres = graphene.List(GenreType)
-    search_publisher = graphene.List(
-        PublisherType,
-        id=graphene.ID(),
-        title=graphene.String())
-    all_publishers = graphene.List(PublisherType)
-
-    def resolve_all_books(self, info, **kwargs):
-        return Book.objects.all()
-
-    def resolve_all_authors(self, info, **kwargs):
-        return Author.objects.all()
-
-    def resolve_all_genres(self, info, **kwargs):
-        return Genre.objects.all()
-
-    def resolve_all_publishers(self, info, **kwargs):
-        return Publisher.objects.all()
-
-    def resolve_search_book(self, info, **kwargs):
-        id = kwargs.get('id')
-        title = kwargs.get('title')
-        author = kwargs.get('author').get('id') if kwargs.get('author') else None
-        genre = kwargs.get('genre').get('id') if kwargs.get('genre') else None
-        publisher = kwargs.get('publisher').get('id') if kwargs.get('publisher') else None
-        query = None
-        if id:
-            query = Book.objects.filter(pk=id)
-        if title:
-            if query is not None:
-                query = query.filter(title__contains=title)
-            else:
-                query = Book.objects.filter(title__contains=title)
-        if author:
-            if query is not None:
-                query = query.filter(author__pk=author)
-            else:
-                query = Book.objects.filter(author__pk=author)
-        if genre:
-            if query is not None:
-                query = query.filter(genre__pk=genre)
-            else:
-                query = Book.objects.filter(genre__pk=genre)
-        if publisher:
-            if query is not None:
-                query = query.filter(publisher__pk=publisher)
-            else:
-                query = Book.objects.filter(publisher__pk=publisher)
-        return query
-
-    def resolve_search_author(self, info, **kwargs):
-        id = kwargs.get('id')
-        first_name = kwargs.get('first_name')
-        last_name = kwargs.get('last_name')
-        query = None
-        if id:
-            query = Author.objects.filter(pk=id)
-        if first_name:
-            if query is not None:
-                query = query.filter(first_name__contains=first_name)
-            else:
-                query = Author.objects.filter(first_name__contains=first_name)
-        if last_name:
-            if query is not None:
-                query = query.filter(last_name__contains=last_name)
-            else:
-                query = Author.objects.filter(last_name__contains=last_name)
-        return query
-
-    def resolve_search_genre(self, info, **kwargs):
-        id = kwargs.get('id')
-        title = kwargs.get('title')
-        query = None
-        if id:
-            query = Genre.objects.filter(pk=id)
-        if title:
-            if query is not None:
-                query = query.filter(title__contains=title)
-            else:
-                query = Genre.objects.filter(title__contains=title)
-        return query
-
-    def resolve_search_publisher(self, info, **kwargs):
-        id = kwargs.get('id')
-        title = kwargs.get('title')
-        query = None
-        if id:
-            query = Publisher.objects.filter(pk=id)
-        if title:
-            if query is not None:
-                query = query.filter(title__contains=title)
-            else:
-                query = Publisher.objects.filter(title__contains=title)
-        return query
+    author = DjangoFilterConnectionField(AuthorType)
+    genre = DjangoFilterConnectionField(GenreType)
+    publisher = DjangoFilterConnectionField(PublisherType)
+    book = DjangoFilterConnectionField(BookType)
 
 
 class CreateAuthor(graphene.Mutation):
