@@ -27,7 +27,7 @@ class BookAdmin(admin.ModelAdmin):
 
 
 class AuthorAdmin(admin.ModelAdmin):
-    list_display = ('first_name', 'last_name', 'birth_year')
+    list_display = ('first_name', 'middle_name', 'last_name', 'birth_date')
     search_fields = ('first_name', 'last_name')
     list_per_page = 20
 

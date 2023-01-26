@@ -43,7 +43,7 @@ INSTALLED_APPS = [
     'django_filters',
 ]
 
-GRAPHENE = {  
+GRAPHENE = {
     'SCHEMA': 'drf.schema'
 }
 

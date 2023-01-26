@@ -1,24 +1,7 @@
 import graphene
-from graphene_django import DjangoObjectType
 from graphene_django.types import DjangoObjectType
 
-
 from .models import Author, Book, Genre, Publisher
-
-
-class PublisherType(DjangoObjectType):
-    class Meta:
-        model = Publisher
-
-
-class GenreType(DjangoObjectType):
-    class Meta:
-        model = Genre
-
-
-class AuthorType(DjangoObjectType):
-    class Meta:
-        model = Author
 
 
 class BookType(DjangoObjectType):
@@ -26,102 +9,346 @@ class BookType(DjangoObjectType):
         model = Book
 
 
+class AuthorType(DjangoObjectType):
+    class Meta:
+        model = Author
+
+
+class GenreType(DjangoObjectType):
+    class Meta:
+        model = Genre
+
+
+class PublisherType(DjangoObjectType):
+    class Meta:
+        model = Publisher
+
+
+class AuthorInput(graphene.InputObjectType):
+    first_name = graphene.String()
+    middle_name = graphene.String()
+    last_name = graphene.String()
+    birth_date = graphene.Date()
+
+
+class GenreInput(graphene.InputObjectType):
+    title = graphene.String()
+
+
+class PublisherInput(graphene.InputObjectType):
+    title = graphene.String()
+
+
+class BookAuthorInput(graphene.InputObjectType):
+    id = graphene.ID()
+
+
+class BookGenreInput(graphene.InputObjectType):
+    id = graphene.ID()
+
+
+class BookPublisherInput(graphene.InputObjectType):
+    id = graphene.ID()
+
+
+class BookInput(graphene.InputObjectType):
+    title = graphene.String()
+    author = graphene.Argument(BookAuthorInput)
+    genre = graphene.List(BookGenreInput)
+    publisher = graphene.Argument(BookPublisherInput)
+
+
 class Query(graphene.ObjectType):
-    # book = graphene.List(BookType, title=graphene.String())
-    # books = graphene.List(BookType)
     author = graphene.List(
         AuthorType,
         id=graphene.ID(),
         first_name=graphene.String(),
         last_name=graphene.String())
     authors = graphene.List(AuthorType)
+    book = graphene.List(
+        BookType,
+        id=graphene.ID(),
+        title=graphene.String(),
+        author=graphene.Argument(BookAuthorInput),
+        genre=graphene.Argument(BookGenreInput),
+        publisher=graphene.Argument(BookPublisherInput)
+        )
+    books = graphene.List(BookType)
+    genre = graphene.List(
+        GenreType,
+        id=graphene.ID(),
+        title=graphene.String())
+    genres = graphene.List(GenreType)
+    publisher = graphene.List(
+        PublisherType,
+        id=graphene.ID(),
+        title=graphene.String())
+    publishers = graphene.List(PublisherType)
 
-    # def resolve_book(self, info, **kwargs):
-    #     name = kwargs.get('name')
-    #     if name is not None:
-    #         return Book.objects.filter(name=name)
-
-    # def resolve_books(self, info, **kwargs):
-    #     return Book.objects.all()
-
-    def resolve_author(self, info, **kwargs):
-        authors = None
-        id = kwargs.get('id')
-        first_name = kwargs.get('first_name')
-        last_name = kwargs.get('last_name')
-        if id:
-            authors = Author.objects.filter(pk=id)
-        elif first_name:
-            if authors:
-                authors = authors.filter(first_name__contains=first_name)
-            else:
-                authors = Author.objects.filter(first_name__contains=first_name)
-        elif last_name:
-            if authors:
-                authors = authors.filter(last_name__contains=last_name)
-            else:
-                authors = Author.objects.filter(last_name__contains=last_name)
-        return authors
+    def resolve_books(self, info, **kwargs):
+        return Book.objects.all()
 
     def resolve_authors(self, info, **kwargs):
         return Author.objects.all()
 
+    def resolve_genres(self, info, **kwargs):
+        return Genre.objects.all()
+
+    def resolve_publishers(self, info, **kwargs):
+        return Publisher.objects.all()
+
+    def resolve_book(self, info, **kwargs):
+        id = kwargs.get('id')
+        title = kwargs.get('title')
+        author = kwargs.get('author').get('id') if kwargs.get('author') else None
+        genre = kwargs.get('genre').get('id') if kwargs.get('genre') else None
+        publisher = kwargs.get('publisher').get('id') if kwargs.get('publisher') else None
+        query = None
+        if id:
+            query = Book.objects.filter(pk=id)
+        if title:
+            if query is not None:
+                query = query.filter(title__contains=title)
+            else:
+                query = Book.objects.filter(title__contains=title)
+        if author:
+            if query is not None:
+                query = query.filter(author__pk=author)
+            else:
+                query = Book.objects.filter(author__pk=author)
+        if genre:
+            if query is not None:
+                query = query.filter(genre__pk=genre)
+            else:
+                query = Book.objects.filter(genre__pk=genre)
+        if publisher:
+            if query is not None:
+                query = query.filter(publisher__pk=publisher)
+            else:
+                query = Book.objects.filter(publisher__pk=publisher)
+        return query
+
+    def resolve_author(self, info, **kwargs):
+        id = kwargs.get('id')
+        first_name = kwargs.get('first_name')
+        last_name = kwargs.get('last_name')
+        query = None
+        if id:
+            query = Author.objects.filter(pk=id)
+        if first_name:
+            if query is not None:
+                query = query.filter(first_name__contains=first_name)
+            else:
+                query = Author.objects.filter(first_name__contains=first_name)
+        if last_name:
+            if query is not None:
+                query = query.filter(last_name__contains=last_name)
+            else:
+                query = Author.objects.filter(last_name__contains=last_name)
+        return query
+
+    def resolve_genre(self, info, **kwargs):
+        id = kwargs.get('id')
+        title = kwargs.get('title')
+        query = None
+        if id:
+            query = Genre.objects.filter(pk=id)
+        if title:
+            if query is not None:
+                query = query.filter(title__contains=title)
+            else:
+                query = Genre.objects.filter(title__contains=title)
+        return query
+
+    def resolve_publisher(self, info, **kwargs):
+        id = kwargs.get('id')
+        title = kwargs.get('title')
+        query = None
+        if id:
+            query = Publisher.objects.filter(pk=id)
+        if title:
+            if query is not None:
+                query = query.filter(title__contains=title)
+            else:
+                query = Publisher.objects.filter(title__contains=title)
+        return query
 
 
-class AuthorInput(graphene.InputObjectType):
-    first_name = graphene.String()
-    last_name = graphene.String()
-    birth_date = graphene.Date()
+class CreateAuthor(graphene.Mutation):
+    class Arguments:
+        input = AuthorInput(required=True)
+
+    ok = graphene.Boolean()
+    author = graphene.Field(AuthorType)
+
+    @staticmethod
+    def mutate(self, info, input=None):
+        ok = True
+        author_instance = Author(
+            first_name=input.first_name,
+            middle_name=input.middle_name,
+            last_name=input.last_name,
+            birth_date=input.birth_date,
+        )
+        author_instance.save()
+        return CreateAuthor(ok=ok, author=author_instance)
 
 
-# class GenreInput(graphene.InputObjectType):
-#     title = graphene.String()
+class CreateGenre(graphene.Mutation):
+    class Arguments:
+        input = GenreInput(required=True)
+
+    ok = graphene.Boolean()
+    genre = graphene.Field(GenreType)
+
+    @staticmethod
+    def mutate(self, info, input=None):
+        ok = True
+        genre_instance = Genre(
+            title=input.title
+        )
+        genre_instance.save()
+        return CreateGenre(ok=ok, genre=genre_instance)
 
 
-# class PublisherInput(graphene.InputObjectType):
-#     title = graphene.String()
+class CreatePublisher(graphene.Mutation):
+    class Arguments:
+        input = PublisherInput(required=True)
+
+    ok = graphene.Boolean()
+    publisher = graphene.Field(PublisherType)
+
+    @staticmethod
+    def mutate(self, info, input=None):
+        ok = True
+        publisher_instance = Publisher(
+            title=input.title
+        )
+        publisher_instance.save()
+        return CreatePublisher(ok=ok, publisher=publisher_instance)
 
 
-# class BookInput(graphene.InputObjectType):
-#     title = graphene.String()
-#     author = graphene.String(AuthorInput)
-#     genre = graphene.String(GenreInput)
-#     publisher = graphene.String(PublisherInput)
+class CreateBook(graphene.Mutation):
+    class Arguments:
+        input = BookInput(required=True)
+    ok = graphene.Boolean()
+    book = graphene.Field(BookType)
+
+    @staticmethod
+    def mutate(root, info, input=None):
+        ok = True
+        author = Author.objects.filter(pk=input.author.id).first()
+        publisher = Publisher.objects.filter(pk=input.publisher.id).first()
+        if not all((author, publisher)):
+            return CreateBook(ok=False, author=None, genre=None,
+                              publisher=None)
+        genres = []
+        for genre_input in input.genre:
+            genre = Genre.objects.filter(pk=genre_input.id).first()
+            if genre is None:
+                return CreateBook(ok=False, author=None, genre=None,
+                                  publisher=None)
+            genres.append(genre)
+        book_instance = Book(
+            title=input.title,
+            author=author,
+            publisher=publisher
+        )
+        book_instance.save()
+        book_instance.genre.set(genres)
+        return CreateBook(ok=ok, book=book_instance)
 
 
-# class CreateAuthor(graphene.Mutation):
-#     class Arguments:
-#         input = AuthorInput(required=True)
+class UpdateAuthor(graphene.Mutation):
+    class Arguments:
+        id = graphene.Int(required=True)
+        input = AuthorInput(required=True)
+    ok = graphene.Boolean()
+    author = graphene.Field(AuthorType)
 
-#     ok = graphene.Boolean()
-#     author = graphene.Field(AuthorType)
+    @staticmethod
+    def mutate(root, info, id, input=None):
+        author_instance = Author.objects.filter(pk=id).first()
+        if not author_instance:
+            return UpdateAuthor(ok=False, movie=None)
+        author_instance.first_name = input.first_name
+        author_instance.middle_name = input.middle_name
+        author_instance.last_name = input.last_name
+        author_instance.birth_date = input.birth_date
+        author_instance.save()
+        return UpdateAuthor(ok=True, author=author_instance)
 
-#     @staticmethod
-#     def mutate(root, info, input=None):
-#         ok = True
-#         author_instance = Author(
-#             first_name=input.first_name,
-#             last_name=input.last_name,
-#             birth_date=input.birth_date)
-#         author_instance.save()
-#         return CreateAuthor(ok=ok, author=author_instance)
+
+class UpdateGenre(graphene.Mutation):
+    class Arguments:
+        id = graphene.Int(required=True)
+        input = GenreInput(required=True)
+    ok = graphene.Boolean()
+    genre = graphene.Field(GenreType)
+
+    @staticmethod
+    def mutate(root, info, id, input=None):
+        genre_instance = Genre.objects.filter(pk=id).first()
+        if not genre_instance:
+            return UpdateGenre(ok=False, genre=None)
+        genre_instance.title = input.title
+        genre_instance.save()
+        return UpdateGenre(ok=True, genre=genre_instance)
 
 
-# class UpdateAuthor(graphene.Mutation):
-#     class Arguments:
-#         id = graphene.Int(required=True)
-#         input = AuthorInput(required=True)
+class UpdatePublisher(graphene.Mutation):
+    class Arguments:
+        id = graphene.Int(required=True)
+        input = PublisherInput(required=True)
+    ok = graphene.Boolean()
+    publisher = graphene.Field(PublisherType)
 
-#     ok = graphene.Boolean()
-#     author = graphene.Field(AuthorType)
+    @staticmethod
+    def mutate(root, info, id, input=None):
+        publisher_instance = Publisher.objects.filter(pk=id).first()
+        if not publisher_instance:
+            return UpdatePublisher(ok=False, publisher=None)
+        publisher_instance.title = input.title
+        publisher_instance.save()
+        return UpdatePublisher(ok=True, publisher=publisher_instance)
 
-#     @staticmethod
-#     def mutate(root, info, id, input=None):
-#         ok = False
-#         author_instance = Author.objects.get(pk=id)
-#         if author_instance:
-#             ok = True
-#             author_instance.name = input.name
-#             author_instance.save()
-#             return UpdateAuthor(ok=ok, author=author_instance)
-#         return UpdateAuthor(ok=ok, author=None)
+
+class UpdateBook(graphene.Mutation):
+    class Arguments:
+        id = graphene.Int(required=True)
+        input = BookInput(required=True)
+    ok = graphene.Boolean()
+    book = graphene.Field(BookType)
+
+    @staticmethod
+    def mutate(root, info, id, input=None):
+        book_instance = Book.objects.filter(pk=id).first()
+        if book_instance:
+            author = Author.objects.filter(pk=input.author.id).first()
+            publisher = Publisher.objects.filter(pk=input.publisher.id).first()
+            if not all((author, publisher)):
+                return UpdateBook(ok=False, book=None)
+            genres = []
+            for genre_input in input.genre:
+                genre = Genre.objects.filter(pk=genre_input.id).first()
+                if genre is None:
+                    return UpdateBook(ok=False, book=None)
+                genres.append(genre)
+            book_instance.title = input.title
+            book_instance.author = author
+            book_instance.publisher = publisher
+            book_instance.save()
+            book_instance.genre.set(genres)
+            return UpdateBook(ok=True, book=book_instance)
+        return UpdateBook(ok=False, book=None)
+
+
+class Mutation(graphene.ObjectType):
+    create_author = CreateAuthor.Field()
+    create_genre = CreateGenre.Field()
+    create_publisher = CreatePublisher.Field()
+    create_book = CreateBook.Field()
+    update_author = UpdateAuthor.Field()
+    update_genre = UpdateGenre.Field()
+    update_publisher = UpdatePublisher.Field()
+    update_book = UpdateBook.Field()

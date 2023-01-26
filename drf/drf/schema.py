@@ -1,7 +1,13 @@
-from library.schema import Query as book_query
-from graphene import Schema, ObjectType
+import library.schema
+from graphene import ObjectType, Schema
 
-class Query(book_query, ObjectType):
+
+class Query(library.schema.Query, ObjectType):
     pass
 
-schema = Schema(query=Query)
+
+class Mutation(library.schema.Mutation, ObjectType):
+    pass
+
+
+schema = Schema(query=library.schema.Query, mutation=library.schema.Mutation)
