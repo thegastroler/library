@@ -1,4 +1,5 @@
 import graphene
+from graphene_django.filter import DjangoFilterConnectionField
 from graphene_django.types import DjangoObjectType
 
 from .models import Author, Book, Genre, Publisher
@@ -58,14 +59,55 @@ class BookInput(graphene.InputObjectType):
     publisher = graphene.Argument(BookPublisherInput)
 
 
+
+
+
+
+
+
+
+class ExtendedConnection(graphene.Connection):
+    class Meta:
+        abstract = True
+
+    total_count = graphene.Int()
+    edge_count = graphene.Int()
+
+    def resolve_total_count(root, info, **kwargs):
+        return root.length
+    def resolve_edge_count(root, info, **kwargs):
+        return len(root.edges)
+
+
+class AuthorsType(DjangoObjectType):
+    class Meta:
+        model = Author
+        filter_fields = {
+            'id':  ['exact', 'icontains'],
+            'first_name': ['exact', 'contains'],
+            'last_name': ['exact', 'contains'],
+            'birth_date': ['exact'],
+        }
+        interfaces = (graphene.Node, )
+        connection_class = ExtendedConnection
+
+
+
+
+
+
+
+
+
 class Query(graphene.ObjectType):
-    author = graphene.List(
+    authors = DjangoFilterConnectionField(AuthorsType)
+    search_author = graphene.List(
         AuthorType,
         id=graphene.ID(),
         first_name=graphene.String(),
         last_name=graphene.String())
-    authors = graphene.List(AuthorType)
-    book = graphene.List(
+    all_authors = graphene.List(AuthorType)
+    search_book = graphene.List(
         BookType,
         id=graphene.ID(),
         title=graphene.String(),
@@ -73,31 +115,31 @@ class Query(graphene.ObjectType):
         genre=graphene.Argument(BookGenreInput),
         publisher=graphene.Argument(BookPublisherInput)
         )
-    books = graphene.List(BookType)
-    genre = graphene.List(
+    all_books = graphene.List(BookType)
+    search_genre = graphene.List(
         GenreType,
         id=graphene.ID(),
         title=graphene.String())
-    genres = graphene.List(GenreType)
-    publisher = graphene.List(
+    all_genres = graphene.List(GenreType)
+    search_publisher = graphene.List(
         PublisherType,
         id=graphene.ID(),
         title=graphene.String())
-    publishers = graphene.List(PublisherType)
+    all_publishers = graphene.List(PublisherType)
 
-    def resolve_books(self, info, **kwargs):
+    def resolve_all_books(self, info, **kwargs):
         return Book.objects.all()
 
-    def resolve_authors(self, info, **kwargs):
+    def resolve_all_authors(self, info, **kwargs):
         return Author.objects.all()
 
-    def resolve_genres(self, info, **kwargs):
+    def resolve_all_genres(self, info, **kwargs):
         return Genre.objects.all()
 
-    def resolve_publishers(self, info, **kwargs):
+    def resolve_all_publishers(self, info, **kwargs):
         return Publisher.objects.all()
 
-    def resolve_book(self, info, **kwargs):
+    def resolve_search_book(self, info, **kwargs):
         id = kwargs.get('id')
         title = kwargs.get('title')
         author = kwargs.get('author').get('id') if kwargs.get('author') else None
@@ -128,7 +170,7 @@ class Query(graphene.ObjectType):
                 query = Book.objects.filter(publisher__pk=publisher)
         return query
 
-    def resolve_author(self, info, **kwargs):
+    def resolve_search_author(self, info, **kwargs):
         id = kwargs.get('id')
         first_name = kwargs.get('first_name')
         last_name = kwargs.get('last_name')
@@ -147,7 +189,7 @@ class Query(graphene.ObjectType):
                 query = Author.objects.filter(last_name__contains=last_name)
         return query
 
-    def resolve_genre(self, info, **kwargs):
+    def resolve_search_genre(self, info, **kwargs):
         id = kwargs.get('id')
         title = kwargs.get('title')
         query = None
@@ -160,7 +202,7 @@ class Query(graphene.ObjectType):
                 query = Genre.objects.filter(title__contains=title)
         return query
 
-    def resolve_publisher(self, info, **kwargs):
+    def resolve_search_publisher(self, info, **kwargs):
         id = kwargs.get('id')
         title = kwargs.get('title')
         query = None
@@ -186,10 +228,11 @@ class CreateAuthor(graphene.Mutation):
         ok = True
         author_instance = Author(
             first_name=input.first_name,
-            middle_name=input.middle_name,
             last_name=input.last_name,
             birth_date=input.birth_date,
         )
+        if input.middle_name is not None:
+            author_instance.middle_name = input.middle_name
         author_instance.save()
         return CreateAuthor(ok=ok, author=author_instance)
 

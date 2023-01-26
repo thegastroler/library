@@ -20,8 +20,7 @@ class Author(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=['first_name', 'last_name', 'middle_name'],
-                name='unique_tag')
-        ]
+                name='unique_tag')]
 
 
 class Genre(models.Model):
@@ -57,8 +56,7 @@ class Book(models.Model):
         related_name='books',
         on_delete=models.CASCADE,
         verbose_name='Автор',
-        blank=False
-        )
+        blank=False)
     genre = models.ManyToManyField(
         Genre,
         verbose_name='Жанр',
@@ -80,5 +78,4 @@ class Book(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=['title', 'author', 'publisher'],
-                name='unique_tag')
-        ]
+                name='unique_tag')]
