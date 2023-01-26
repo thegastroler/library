@@ -10,7 +10,8 @@ def csv_export(self, request, queryset):
     import csv
     fields = [i.name for i in self.model._meta.fields]
     response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename={}.csv'.format(self.model._meta.object_name)
+    response['Content-Disposition'] = 'attachment; filename={}.csv'.format(
+        self.model._meta.object_name)
     response.write(codecs.BOM_UTF8)
     writer = csv.writer(response, dialect='excel', delimiter=';')
     writer.writerow(fields)

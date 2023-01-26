@@ -15,6 +15,7 @@ class ExtendedConnection(graphene.Connection):
 
     def resolve_total_count(root, info, **kwargs):
         return root.length
+
     def resolve_edge_count(root, info, **kwargs):
         return len(root.edges)
 
@@ -53,59 +54,87 @@ class BookInput(graphene.InputObjectType):
     publisher = graphene.Argument(BookPublisherInput)
 
 
+class CustomNode(graphene.Node):
+    class Meta:
+        name = 'Node'
+
+    @staticmethod
+    def to_global_id(type, id):
+        return id
+
+
 class BookType(DjangoObjectType):
     class Meta:
         model = Book
-        filter_fields = {
-            'id':  ['exact', 'icontains'],
-            'title': ['exact', 'icontains', 'istartswith', 'iendswith'],
-            'author': ['exact',],
-            'publisher': ['exact',],
-        }
-        interfaces = (graphene.Node, )
+        interfaces = (CustomNode, )
         connection_class = ExtendedConnection
 
 
 class GenreType(DjangoObjectType):
     class Meta:
         model = Genre
-        filter_fields = {
-            'id':  ['exact', 'icontains'],
-            'title': ['exact', 'icontains', 'istartswith', 'iendswith'],
-        }
-        interfaces = (graphene.Node, )
+        interfaces = (CustomNode, )
         connection_class = ExtendedConnection
 
 
 class PublisherType(DjangoObjectType):
     class Meta:
         model = Publisher
-        filter_fields = {
-            'id':  ['exact', 'icontains'],
-            'title': ['exact', 'icontains', 'istartswith', 'iendswith'],
-        }
-        interfaces = (graphene.Node, )
+        interfaces = (CustomNode, )
         connection_class = ExtendedConnection
 
 
 class AuthorType(DjangoObjectType):
     class Meta:
         model = Author
-        filter_fields = {
-            'id':  ['exact', 'icontains'],
-            'first_name': ['exact', 'icontains', 'istartswith', 'iendswith'],
-            'last_name': ['exact', 'icontains', 'istartswith', 'iendswith'],
-            'birth_date': ['exact'],
-        }
-        interfaces = (graphene.Node, )
+        interfaces = (CustomNode, )
         connection_class = ExtendedConnection
 
 
+class AuthorFilter(FilterSet):
+    class Meta:
+        model = Author
+        fields = '__all__'
+
+    order_by = OrderingFilter(
+        fields=('id', 'first_name', 'middle_name', 'last_name', 'birth_date'))
+
+
+class GenreFilter(FilterSet):
+    class Meta:
+        model = Genre
+        fields = '__all__'
+
+    order_by = OrderingFilter(
+        fields=('id', 'title'))
+
+
+class PublisherFilter(FilterSet):
+    class Meta:
+        model = Publisher
+        fields = '__all__'
+
+    order_by = OrderingFilter(
+        fields=('id', 'title'))
+
+
+class BookFilter(FilterSet):
+    class Meta:
+        model = Book
+        fields = '__all__'
+
+    order_by = OrderingFilter(
+        fields=('id', 'title', 'author', 'genre', 'publisher'))
+
+
 class Query(graphene.ObjectType):
-    author = DjangoFilterConnectionField(AuthorType)
-    genre = DjangoFilterConnectionField(GenreType)
-    publisher = DjangoFilterConnectionField(PublisherType)
-    book = DjangoFilterConnectionField(BookType)
+    author = DjangoFilterConnectionField(AuthorType,
+                                         filterset_class=AuthorFilter)
+    genre = DjangoFilterConnectionField(GenreType,
+                                        filterset_class=GenreFilter)
+    publisher = DjangoFilterConnectionField(PublisherType,
+                                            filterset_class=PublisherFilter)
+    book = DjangoFilterConnectionField(BookType, filterset_class=BookFilter)
 
 
 class CreateAuthor(graphene.Mutation):
