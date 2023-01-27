@@ -132,6 +132,14 @@ six = "*"
 test = ["pytest (>=2.7.3)", "pytest-cov", "coveralls", "futures", "pytest-benchmark", "mock"]
 
 [[package]]
+name = "psycopg2-binary"
+version = "2.9.5"
+description = "psycopg2 - Python-PostgreSQL Database Adapter"
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[[package]]
 name = "pytz"
 version = "2022.7.1"
 description = "World timezone definitions, modern and historical"
@@ -174,7 +182,7 @@ python-versions = ">=2"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "e7bb32564461d76ed644c295f2cf4e9e2f8f656a18e5c3ffa201e5e4aa87094a"
+content-hash = "6f8af3e61ce0aa88cb4ee801993cadc24f19927851b94dd93e1b27b5ef3de7f1"
 
 [metadata.files]
 aniso8601 = []
@@ -187,6 +195,7 @@ graphene-django = []
 graphql-core = []
 graphql-relay = []
 promise = []
+psycopg2-binary = []
 pytz = []
 six = []
 sqlparse = []

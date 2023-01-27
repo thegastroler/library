@@ -21,24 +21,24 @@ def csv_export(self, request, queryset):
 
 
 class GenreAdmin(admin.ModelAdmin):
-    list_display = ('title', )
-    search_fields = ('title',)
+    list_display = ('title', 'id')
+    search_fields = ('title', 'id')
     list_per_page = 20
     actions = [csv_export]
 
 
 class PublilsherAdmin(admin.ModelAdmin):
-    list_display = ('title', )
-    search_fields = ('title',)
+    list_display = ('title', 'id')
+    search_fields = ('title', 'id')
     list_per_page = 20
     actions = [csv_export]
 
 
 class BookAdmin(admin.ModelAdmin):
+    list_display = ('title', 'get_genre', 'author', 'publisher', 'id')
+    search_fields = ('book', 'id')
     filter_horizontal = ('genre',)
-    search_fields = ('book',)
     list_filter = ('author', 'publisher', 'genre')
-    list_display = ('title', 'get_genre', 'author', 'publisher')
     list_per_page = 20
     actions = [csv_export]
 
@@ -47,8 +47,8 @@ class BookAdmin(admin.ModelAdmin):
 
 
 class AuthorAdmin(admin.ModelAdmin):
-    list_display = ('first_name', 'middle_name', 'last_name', 'birth_date')
-    search_fields = ('first_name', 'last_name')
+    list_display = ('first_name', 'middle_name', 'last_name', 'birth_date', 'id')
+    search_fields = ('first_name', 'last_name', 'id')
     list_per_page = 20
     actions = [csv_export]
 

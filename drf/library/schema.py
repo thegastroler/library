@@ -234,7 +234,7 @@ class UpdateAuthor(graphene.Mutation):
     def mutate(root, info, id, input=None):
         author_instance = Author.objects.filter(pk=id).first()
         if not author_instance:
-            return UpdateAuthor(ok=False, movie=None)
+            return UpdateAuthor(ok=False, author=None)
         author_instance.first_name = input.first_name
         author_instance.middle_name = input.middle_name
         author_instance.last_name = input.last_name

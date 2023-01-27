@@ -11,7 +11,7 @@ class Author(models.Model):
     birth_date = models.DateField(verbose_name='Дата рождения', blank=False)
 
     def __str__(self) -> str:
-        return f'{self.first_name} {self.last_name}'
+        return f'{self.last_name} {self.first_name} {self.middle_name}'
 
     class Meta:
         verbose_name = 'Автор'
@@ -20,7 +20,7 @@ class Author(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=['first_name', 'last_name', 'middle_name'],
-                name='unique_tag')]
+                name='unique_author')]
 
 
 class Genre(models.Model):
@@ -78,4 +78,4 @@ class Book(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=['title', 'author', 'publisher'],
-                name='unique_tag')]
+                name='unique_book')]

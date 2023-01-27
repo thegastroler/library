@@ -1,0 +1,36 @@
+version: "3.8"
+
+services:
+  db:
+    container_name: library_postgresql_db
+    image: postgres:12.0-alpine
+    restart: always
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
+
+  pg_admin:
+    container_name: library_pgadmin
+    image: dpage/pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@admin.com
+      - PGADMIN_DEFAULT_PASSWORD=admin
+    ports:
+      - 5050:80
+    depends_on:
+      - db
+
+  app:
+    container_name: library_app
+    build: .
+    command: bash -c "cd drf/ && python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/app
+    ports:
+      - 8000:8000
+    depends_on:
+      - db
+    restart: always
