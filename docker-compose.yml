@@ -3,7 +3,9 @@ version: "3.8"
 services:
   db:
     container_name: library_postgresql_db
-    image: postgres:12.0-alpine
+    image: postgres:12.4
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
     restart: always
     ports:
       - 5432:5432
@@ -34,3 +36,6 @@ services:
     depends_on:
       - db
     restart: always
+
+volumes:
+  postgres_data:

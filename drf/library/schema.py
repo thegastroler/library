@@ -94,7 +94,7 @@ class AuthorType(DjangoObjectType):
 class AuthorFilter(FilterSet):
     class Meta:
         model = Author
-        fields = '__all__'
+        fields = ('id', 'first_name', 'middle_name', 'last_name', 'birth_date')
 
     order_by = OrderingFilter(
         fields=('id', 'first_name', 'middle_name', 'last_name', 'birth_date'))
@@ -103,7 +103,7 @@ class AuthorFilter(FilterSet):
 class GenreFilter(FilterSet):
     class Meta:
         model = Genre
-        fields = '__all__'
+        fields = ('id', 'title')
 
     order_by = OrderingFilter(
         fields=('id', 'title'))
@@ -112,7 +112,7 @@ class GenreFilter(FilterSet):
 class PublisherFilter(FilterSet):
     class Meta:
         model = Publisher
-        fields = '__all__'
+        fields = ('id', 'title')
 
     order_by = OrderingFilter(
         fields=('id', 'title'))
@@ -121,7 +121,7 @@ class PublisherFilter(FilterSet):
 class BookFilter(FilterSet):
     class Meta:
         model = Book
-        fields = '__all__'
+        fields = ('id', 'title')
 
     order_by = OrderingFilter(
         fields=('id', 'title', 'author', 'genre', 'publisher'))
