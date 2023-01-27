@@ -148,7 +148,7 @@ mutation createPublisher {
     "createAuthor": {
       "ok": true,
       "author": {
-        "id": "5",
+        "id": "1",
         "firstName": "Виктор",
         "middleName": "Алексеевич",
         "lastName": "Петров",
@@ -163,7 +163,7 @@ mutation createPublisher {
     "createGenre": {
       "ok": true,
       "genre": {
-        "id": "3",
+        "id": "1",
         "title": "Сказка"
       }
     }
@@ -175,7 +175,7 @@ mutation createPublisher {
     "createPublisher": {
       "ok": true,
       "publisher": {
-        "id": "3",
+        "id": "1",
         "title": "Орел"
       }
     }
@@ -189,7 +189,7 @@ mutation createPublisher {
 ```
 mutation createBook {
   createBook(
-    input: {title: "Сказки", author: {id: 5}, genre: [{id: 3}], publisher: {id: 3}}
+    input: {title: "Сказки", author: {id: 1}, genre: [{id: 1}], publisher: {id: 1}}
   ) {
     ok
     book {
@@ -200,7 +200,7 @@ mutation createBook {
 
 mutation createBook {
   createBook(
-    input: {title: "Сказки. Часть 2", author: {id: 5}, genre: [{id: 3}], publisher: {id: 3}}
+    input: {title: "Сказки. Часть 2", author: {id: 1}, genre: [{id: 1}], publisher: {id: 1}}
   ) {
     ok
     book {
@@ -216,7 +216,7 @@ mutation createBook {
 
 ```
 query author {
-  author(id: 5) {
+  author(id: 1) {
     totalCount
     edges {
       node {
@@ -247,10 +247,10 @@ query author {
               "edges": [
                 {
                   "node": {
-                    "id": "3",
+                    "id": "2",
                     "title": "Сказки. Часть 2",
                     "author": {
-                      "id": "5",
+                      "id": "1",
                       "firstName": "Виктор",
                       "middleName": "Алексеевич",
                       "lastName": "Петров",
@@ -260,24 +260,24 @@ query author {
                       "edges": [
                         {
                           "node": {
-                            "id": "3",
+                            "id": "1",
                             "title": "Сказка"
                           }
                         }
                       ]
                     },
                     "publisher": {
-                      "id": "3",
+                      "id": "1",
                       "title": "Орел"
                     }
                   }
                 },
                 {
                   "node": {
-                    "id": "2",
+                    "id": "1",
                     "title": "Сказки",
                     "author": {
-                      "id": "5",
+                      "id": "1",
                       "firstName": "Виктор",
                       "middleName": "Алексеевич",
                       "lastName": "Петров",
@@ -287,14 +287,14 @@ query author {
                       "edges": [
                         {
                           "node": {
-                            "id": "3",
+                            "id": "1",
                             "title": "Сказка"
                           }
                         }
                       ]
                     },
                     "publisher": {
-                      "id": "3",
+                      "id": "1",
                       "title": "Орел"
                     }
                   }
